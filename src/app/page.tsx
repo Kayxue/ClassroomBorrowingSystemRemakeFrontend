@@ -22,9 +22,9 @@ export default function Home() {
 		setData(JSON.stringify(result.data));
 	}
 
-	async function logout(){
+	async function logout() {
 		await axios.get("http://localhost:3001/user/logout");
-		setData("Logged out")
+		setData("Logged out");
 	}
 
 	return (
@@ -41,9 +41,24 @@ export default function Home() {
 				placeholder="password"
 				className="border-2 border-black border-solid rounded-xl pl-2 pr-2"
 			></input>
-			<button className="bg-green-300 border-green-500 text-white rounded-2xl pl-2 pr-2 focus:ring-2 focus:ring-green-300" onClick={() => login()}>login</button>
-			<button className="bg-blue-500  text-white rounded-2xl pl-2 pr-2 focus:ring-blue-300 focus:ring-2" onClick={() => getProfile()}>profile</button>
-			<button className="bg-red-500 text-white rounded-2xl pl-2 pr-2 focus:ring-red-300 focus:ring-2" onClick={() => logout()}>logout</button>
+			<button
+				className="bg-green-300 text-white rounded-2xl pl-2 pr-2 focus:ring-2 focus:ring-green-300"
+				onClick={() => login()}
+			>
+				login
+			</button>
+			<button
+				className="bg-blue-500  text-white rounded-2xl pl-2 pr-2 focus:ring-blue-300 focus:ring-2"
+				onClick={() => getProfile()}
+			>
+				profile
+			</button>
+			<button
+				className="bg-red-500 text-white rounded-2xl pl-2 pr-2 focus:ring-red-300 focus:ring-2"
+				onClick={() => logout()}
+			>
+				logout
+			</button>
 			<p>{data}</p>
 		</div>
 	);
