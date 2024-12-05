@@ -98,7 +98,7 @@ export function Navbar() {
             </Link>
             <a
               className="font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
-              href="#"
+              href="/borrow"
             >
               教室列表
             </a>
