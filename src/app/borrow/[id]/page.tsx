@@ -71,7 +71,7 @@ export default function BorrowId() {
     for (let i = 1; i <= daysInMonth; i++) {
       const dayDiv = document.createElement("div");
       dayDiv.className =
-        "flex h-[30px] w-[30px] items-center justify-center rounded-[7px] border-[.5px] border-transparent text-dark hover:border-stroke hover:bg-gray-2 sm:h-[40px] sm:w-[40px] dark:hover:border-dark-3 mb-2";
+        "flex h-[30px] w-[30px] items-center justify-center rounded-[7px] border-[.5px] border-transparent text-dark hover:border-stroke hover:bg-gray-2 sm:h-[40px] sm:w-[40px] mb-2";
       dayDiv.textContent = i.toString(); // 使用 padStart 來補零
 
       dayDiv.addEventListener("click", () => {
@@ -81,9 +81,7 @@ export default function BorrowId() {
 
         setSelectedDate(selectedDateValue);
 
-        daysContainer
-          .querySelectorAll("div")
-          .forEach((d) => d.classList.remove("bg-[#3758f9]", "text-white"));
+        daysContainer.querySelectorAll("div").forEach((d) => d.classList.remove("bg-[#3758f9]", "text-white"));
 
         dayDiv.classList.add("bg-[#3758f9]", "text-white");
       });
@@ -171,18 +169,14 @@ export default function BorrowId() {
     data: swrData,
     error: swrError,
     isLoading: swrLoading,
-  } = useSWR(
-    `http://localhost:3001/classroom/getClassroom/${classroomId}`,
-    fetcher,
-    {
-      revalidateOnFocus: false, // Disable re-fetching when the window is refocused
-      revalidateOnReconnect: false, // Disable re-fetching on network reconnect
-      shouldRetryOnError: false, // Disable retrying on error
-    }
-  );
+  } = useSWR(`http://localhost:3001/classroom/getClassroom/${classroomId}`, fetcher, {
+    revalidateOnFocus: false, // Disable re-fetching when the window is refocused
+    revalidateOnReconnect: false, // Disable re-fetching on network reconnect
+    shouldRetryOnError: false, // Disable retrying on error
+  });
 
   const startBorrow = async () => {
-    if (!selectedDate || !selectedValue || !selectedValue2) {
+    if (!selectedDate?.trim() || !selectedValue || !selectedValue2) {
       setMessage("全部欄位都必須填寫");
       setMessageType(0);
       return;
@@ -195,18 +189,13 @@ export default function BorrowId() {
     }
 
     try {
-      const response = await fetch(
-        "http://worldtimeapi.org/api/timezone/Etc/UTC",
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetch("http://worldtimeapi.org/api/timezone/Etc/UTC", {
+        method: "GET",
+      });
 
       const json = await response.json();
       const currentUnixTime = json.unixtime;
-      const selectedUnixTime = Math.floor(
-        new Date(selectedDate).getTime() / 1000
-      );
+      const selectedUnixTime = Math.floor(new Date(selectedDate).getTime() / 1000);
 
       // 比較到日期的層級
       const currentDate = new Date(currentUnixTime * 1000);
@@ -243,17 +232,14 @@ export default function BorrowId() {
     };
 
     try {
-      const response = await fetch(
-        "http://localhost:3001/borrow/insertBorrow",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(borrowData),
-        }
-      );
+      const response = await fetch("http://localhost:3001/borrow/insertBorrow", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(borrowData),
+      });
 
       const json = await response.json();
       setMessage(json.message);
@@ -273,8 +259,10 @@ export default function BorrowId() {
   };
 
   const startBorrowEdit = async () => {
-    if (!classroomName || !classroomPlace || !classroomDescription) {
-      setMessage("全部欄位都必須填寫");
+    const isInvalidField = (value: string) => !value || /\s/.test(value);
+
+    if (isInvalidField(classroomName) || isInvalidField(classroomPlace) || isInvalidField(classroomDescription)) {
+      setMessage("全部欄位都必須填寫且不能有空白");
       setMessageType(0);
       return;
     }
@@ -289,17 +277,14 @@ export default function BorrowId() {
     };
 
     try {
-      const response = await fetch(
-        "http://localhost:3001/classroom/updateClassroom",
-        {
-          method: "PATCH",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(borrowData),
-        }
-      );
+      const response = await fetch("http://localhost:3001/classroom/updateClassroom", {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(borrowData),
+      });
 
       const json = await response.json();
 
@@ -364,9 +349,7 @@ export default function BorrowId() {
               <div className="h-16" />
               <div className="flex">
                 <div className="border block rounded-lg text-surface shadow-secondary-1 w-full">
-                  <div className="border-b-2 border-neutral-100 px-6 py-3 font-bold text-lg md:text-x;">
-                    教室位置
-                  </div>
+                  <div className="border-b-2 border-neutral-100 px-6 py-3 font-bold text-lg md:text-x;">教室位置</div>
                   <div className="p-6">
                     <p>{swrData.place}</p>
                   </div>
@@ -375,9 +358,7 @@ export default function BorrowId() {
               <div className="h-8" />
               <div className="flex">
                 <div className="border block rounded-lg text-surface shadow-secondary-1 w-full">
-                  <div className="border-b-2 border-neutral-100 px-6 py-3 font-bold text-lg md:text-x;">
-                    教室描述
-                  </div>
+                  <div className="border-b-2 border-neutral-100 px-6 py-3 font-bold text-lg md:text-x;">教室描述</div>
                   <div className="p-6">
                     <p>{swrData.description}</p>
                   </div>
@@ -425,7 +406,7 @@ export default function BorrowId() {
                   onClick={handleToggleModal3}
                 >
                   <div
-                    className="mt-7 opacity-100 duration-500 mt-0 opacity-0 ease-out transition-all md:max-w-2xl md:w-full m-3 md:mx-auto"
+                    className="mt-7 opacity-100 duration-500 ease-out transition-all md:max-w-2xl md:w-full m-3 md:mx-auto"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="relative flex flex-col bg-white border shadow-sm rounded-xl overflow-hidden">
@@ -473,15 +454,10 @@ export default function BorrowId() {
                           {/* End Icon */}
 
                           <div className="grow">
-                            <h3
-                              id="hs-danger-alert-label"
-                              className="mb-2 text-xl font-bold text-gray-800"
-                            >
+                            <h3 id="hs-danger-alert-label" className="mb-2 text-xl font-bold text-gray-800">
                               刪除教室
                             </h3>
-                            <p className="text-gray-500">
-                              此操作不可逆，因此請謹慎繼續。
-                            </p>
+                            <p className="text-gray-500">此操作不可逆，因此請謹慎繼續。</p>
                           </div>
                         </div>
                       </div>
@@ -517,74 +493,60 @@ export default function BorrowId() {
                   onClick={closeModal2}
                 >
                   <div
-                    className="bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-neutral-900 dark:border-neutral-800 p-4 sm:p-7 w-[500px] max-w-full"
+                    className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-7 w-[500px] max-w-full"
                     onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside the modal
                   >
                     <div className="text-center">
-                      <h3
-                        id="borrow-classroom-edit"
-                        className="block text-2xl font-bold text-gray-800 dark:text-neutral-200"
-                      >
+                      <h3 id="borrow-classroom-edit" className="block text-2xl font-bold text-gray-800">
                         修改教室
                       </h3>
                     </div>
                     <div className="h-6" />
-                    <form>
-                      <div className="grid gap-y-4">
-                        <label className="block text-sm">教室名稱</label>
-                        <input
-                          type="text"
-                          className="h-12 w-full appearance-none rounded-lg border border-stroke bg-white pl-5 text-dark outline-none focus:border-[#3758f9]"
-                          value={classroomName}
-                          onChange={(event) =>
-                            setClassroomName(event.target.value)
-                          }
-                        />
+                    <div className="grid gap-y-4">
+                      <p className="block text-sm">教室名稱</p>
+                      <input
+                        id="classroomName"
+                        type="text"
+                        className="h-12 w-full appearance-none rounded-lg border border-stroke bg-white pl-5 text-dark outline-none focus:border-[#3758f9]"
+                        value={classroomName}
+                        onChange={(event) => setClassroomName(event.target.value)}
+                      />
 
-                        <label className="block text-sm">教室位置</label>
-                        <input
-                          type="text"
-                          className="h-12 w-full appearance-none rounded-lg border border-stroke bg-white pl-5 text-dark outline-none focus:border-[#3758f9]"
-                          value={classroomPlace}
-                          onChange={(event) =>
-                            setClassroomPlace(event.target.value)
-                          }
-                        />
+                      <p className="block text-sm">教室位置</p>
+                      <input
+                        id="classroomPlace"
+                        type="text"
+                        className="h-12 w-full appearance-none rounded-lg border border-stroke bg-white pl-5 text-dark outline-none focus:border-[#3758f9]"
+                        value={classroomPlace}
+                        onChange={(event) => setClassroomPlace(event.target.value)}
+                      />
 
-                        <label className="block text-sm">教室描述</label>
-                        <input
-                          type="text"
-                          className="h-12 w-full appearance-none rounded-lg border border-stroke bg-white pl-5 text-dark outline-none focus:border-[#3758f9]"
-                          value={classroomDescription}
-                          onChange={(event) =>
-                            setClassroomDescription(event.target.value)
-                          }
-                        />
+                      <p className="block text-sm">教室描述</p>
+                      <input
+                        id="classroomDescription"
+                        type="text"
+                        className="h-12 w-full appearance-none rounded-lg border border-stroke bg-white pl-5 text-dark outline-none focus:border-[#3758f9]"
+                        value={classroomDescription}
+                        onChange={(event) => setClassroomDescription(event.target.value)}
+                      />
 
-                        <div>
-                          <button
-                            type="button"
-                            className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-green-500 text-white focus:outline-none disabled:pointer-events-none"
-                            onClick={startBorrowEdit}
-                            disabled={isDisabled}
-                          >
-                            修改
-                          </button>
-                        </div>
-
-                        {message && (
-                          <div
-                            className={`p-4 text-sm rounded-lg ${
-                              messageType == 1
-                                ? "bg-green-50 text-green-800"
-                                : "bg-red-50 text-red-800"
-                            }`}
-                          >
-                            {message}
-                          </div>
-                        )}
+                      <div>
+                        <button
+                          type="button"
+                          className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-green-500 text-white focus:outline-none disabled:pointer-events-none"
+                          onClick={startBorrowEdit}
+                          disabled={isDisabled}
+                        >
+                          修改
+                        </button>
                       </div>
-                    </form>
+
+                      {message && (
+                        <div className={`p-4 text-sm rounded-lg ${messageType == 1 ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}>
+                          {message}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -598,19 +560,16 @@ export default function BorrowId() {
                   onClick={closeModal}
                 >
                   <div
-                    className="bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-neutral-900 dark:border-neutral-800 p-4 sm:p-7 w-[500px] max-w-full"
+                    className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-7 w-[500px] max-w-full"
                     onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside the modal
                   >
                     <div className="text-center">
-                      <h3
-                        id="borrow-classroom"
-                        className="block text-2xl font-bold text-gray-800 dark:text-neutral-200"
-                      >
+                      <h3 id="borrow-classroom" className="block text-2xl font-bold text-gray-800">
                         預約時間
                       </h3>
                     </div>
                     <div className="h-6" />
-                    <label className="block text-sm mb-2">日期</label>
+                    <p className="block text-sm mb-2">日期</p>
                     <div>
                       <div className="mx-auto w-full max-w-[510px]">
                         <div className="relative mb-3">
@@ -628,13 +587,7 @@ export default function BorrowId() {
                             onClick={handleToggleCalendar}
                             className="absolute inset-y-0 flex h-12 w-12 items-center justify-center text-dark-5"
                           >
-                            <svg
-                              width="21"
-                              height="20"
-                              viewBox="0 0 21 20"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
+                            <svg width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path
                                 d="M18 3.3125H16.3125V2.625C16.3125 2.25 16 1.90625 15.5937 1.90625C15.1875 1.90625 14.875 2.21875 14.875 2.625V3.28125H6.09375V2.625C6.09375 2.25 5.78125 1.90625 5.375 1.90625C4.96875 1.90625 4.65625 2.21875 4.65625 2.625V3.28125H3C1.9375 3.28125 1.03125 4.15625 1.03125 5.25V16.125C1.03125 17.1875 1.90625 18.0938 3 18.0938H18C19.0625 18.0938 19.9687 17.2187 19.9687 16.125V5.25C19.9687 4.1875 19.0625 3.3125 18 3.3125ZM3 4.71875H4.6875V5.34375C4.6875 5.71875 5 6.0625 5.40625 6.0625C5.8125 6.0625 6.125 5.75 6.125 5.34375V4.71875H14.9687V5.34375C14.9687 5.71875 15.2812 6.0625 15.6875 6.0625C16.0937 6.0625 16.4062 5.75 16.4062 5.34375V4.71875H18C18.3125 4.71875 18.5625 4.96875 18.5625 5.28125V7.34375H2.46875V5.28125C2.46875 4.9375 2.6875 4.71875 3 4.71875ZM18 16.6562H3C2.6875 16.6562 2.4375 16.4062 2.4375 16.0937V8.71875H18.5312V16.125C18.5625 16.4375 18.3125 16.6562 18 16.6562Z"
                                 fill="currentColor"
@@ -687,7 +640,7 @@ export default function BorrowId() {
                           <div
                             ref={datepickerContainerRef}
                             id="datepicker-container"
-                            className="flex w-full flex-col rounded-xl bg-white p-2 border shadow-four sm:p-4 dark:bg-dark-2 dark:shadow-box-dark mb-3"
+                            className="flex w-full flex-col rounded-xl bg-white p-2 border shadow-four sm:p-4 mb-3"
                           >
                             <div className="flex items-center justify-between pb-2">
                               <button
@@ -707,10 +660,7 @@ export default function BorrowId() {
                                 </svg>
                               </button>
 
-                              <span
-                                id="currentMonth"
-                                className="text-lg font-medium capitalize text-dark"
-                              >
+                              <span id="currentMonth" className="text-lg font-medium capitalize text-dark">
                                 {currentDate.toLocaleDateString("zh-TW", {
                                   month: "long",
                                   year: "numeric",
@@ -735,33 +685,15 @@ export default function BorrowId() {
                               </button>
                             </div>
                             <div className="grid grid-cols-7 justify-between text-center pb-1 pt-2 text-xs font-medium capitalize text-body-color">
-                              <span className="flex h-8 w-8 items-center justify-center">
-                                Mo
-                              </span>
-                              <span className="flex h-8 w-8 items-center justify-center">
-                                Tu
-                              </span>
-                              <span className="flex h-8 w-8 items-center justify-center">
-                                We
-                              </span>
-                              <span className="flex h-8 w-8 items-center justify-center">
-                                Th
-                              </span>
-                              <span className="flex h-8 w-8 items-center justify-center">
-                                Fr
-                              </span>
-                              <span className="flex h-8 w-8 items-center justify-center">
-                                Sa
-                              </span>
-                              <span className="flex h-8 w-8 items-center justify-center">
-                                Su
-                              </span>
+                              <span className="flex h-8 w-8 items-center justify-center">Mo</span>
+                              <span className="flex h-8 w-8 items-center justify-center">Tu</span>
+                              <span className="flex h-8 w-8 items-center justify-center">We</span>
+                              <span className="flex h-8 w-8 items-center justify-center">Th</span>
+                              <span className="flex h-8 w-8 items-center justify-center">Fr</span>
+                              <span className="flex h-8 w-8 items-center justify-center">Sa</span>
+                              <span className="flex h-8 w-8 items-center justify-center">Su</span>
                             </div>
-                            <div
-                              ref={daysContainerRef}
-                              id="days-container"
-                              className="grid grid-cols-7 text-center text-xs font-medium"
-                            >
+                            <div ref={daysContainerRef} id="days-container" className="grid grid-cols-7 text-center text-xs font-medium">
                               {/* Days will be rendered here */}
                             </div>
                             <div className="flex items-center space-x-2 pt-3">
@@ -785,84 +717,70 @@ export default function BorrowId() {
                         )}
                       </div>
 
-                      <form>
-                        <div className="grid gap-y-4">
-                          <div>
-                            <label className="block text-sm mb-2 dark:text-white">
-                              第幾節課開始
-                            </label>
-                            <div className="relative">
-                              <select
-                                value={
-                                  selectedValue !== null ? selectedValue : ""
-                                }
-                                onChange={handleChange}
-                                className="border py-3 px-4 pe-9 block w-full rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:pointer-events-none"
-                              >
-                                <option value="" disabled>
-                                  請選擇
-                                </option>
-                                <option value={1}>1</option>
-                                <option value={2}>2</option>
-                                <option value={3}>3</option>
-                                <option value={4}>4</option>
-                                <option value={5}>5</option>
-                                <option value={6}>6</option>
-                                <option value={7}>7</option>
-                                <option value={8}>8</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm mb-2 dark:text-white">
-                              第幾節課結束
-                            </label>
-                            <div className="relative">
-                              <select
-                                value={
-                                  selectedValue2 !== null ? selectedValue2 : ""
-                                }
-                                onChange={handleChange2}
-                                className="border py-3 px-4 pe-9 block w-full rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:pointer-events-none"
-                              >
-                                <option value="" disabled>
-                                  請選擇
-                                </option>
-                                <option value={1}>1</option>
-                                <option value={2}>2</option>
-                                <option value={3}>3</option>
-                                <option value={4}>4</option>
-                                <option value={5}>5</option>
-                                <option value={6}>6</option>
-                                <option value={7}>7</option>
-                                <option value={8}>8</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          <button
-                            type="button"
-                            className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:bg-blue-700 disabled:pointer-events-none"
-                            onClick={startBorrow}
-                          >
-                            預約
-                          </button>
-                        </div>
-                        {message && (
-                          <div className="mt-5">
-                            <div
-                              className={`p-4 text-sm rounded-lg ${
-                                messageType == 1
-                                  ? "bg-green-50 text-green-800"
-                                  : "bg-red-50 text-red-800"
-                              }`}
+                      <div className="grid gap-y-4">
+                        <div>
+                          <p className="block text-sm mb-2">第幾節課開始</p>
+                          <div className="relative">
+                            <select
+                              id="from"
+                              value={selectedValue !== null ? selectedValue : ""}
+                              onChange={handleChange}
+                              className="border py-3 px-4 pe-9 block w-full rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:pointer-events-none"
                             >
-                              {message}
-                            </div>
+                              <option value="" disabled>
+                                請選擇
+                              </option>
+                              <option value={1}>1</option>
+                              <option value={2}>2</option>
+                              <option value={3}>3</option>
+                              <option value={4}>4</option>
+                              <option value={5}>5</option>
+                              <option value={6}>6</option>
+                              <option value={7}>7</option>
+                              <option value={8}>8</option>
+                            </select>
                           </div>
-                        )}
-                      </form>
+                        </div>
+
+                        <div>
+                          <p className="block text-sm mb-2">第幾節課結束</p>
+                          <div className="relative">
+                            <select
+                              id="to"
+                              value={selectedValue2 !== null ? selectedValue2 : ""}
+                              onChange={handleChange2}
+                              className="border py-3 px-4 pe-9 block w-full rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:pointer-events-none"
+                            >
+                              <option value="" disabled>
+                                請選擇
+                              </option>
+                              <option value={1}>1</option>
+                              <option value={2}>2</option>
+                              <option value={3}>3</option>
+                              <option value={4}>4</option>
+                              <option value={5}>5</option>
+                              <option value={6}>6</option>
+                              <option value={7}>7</option>
+                              <option value={8}>8</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:bg-blue-700 disabled:pointer-events-none"
+                          onClick={startBorrow}
+                        >
+                          預約
+                        </button>
+                      </div>
+                      {message && (
+                        <div className="mt-5">
+                          <div className={`p-4 text-sm rounded-lg ${messageType == 1 ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}>
+                            {message}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
