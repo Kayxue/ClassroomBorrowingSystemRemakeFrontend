@@ -32,7 +32,7 @@ export function Navbar() {
       <nav className="w-full mx-auto px-4 sm:flex sm:items-center sm:justify-between">
         <div className="flex items-center justify-between">
           <Link
-            className="flex-none text-xl font-semibold focus:outline-none focus:opacity-80 text-white opacity-50 hover:opacity-80"
+            className="flex-none text-2xl font-semibold focus:outline-none focus:opacity-80 text-white opacity-50 hover:opacity-80"
             href="/"
             aria-label="Brand"
           >
@@ -89,21 +89,21 @@ export function Navbar() {
           aria-labelledby="hs-navbar-example-collapse"
         >
           <div className="flex flex-col gap-5 mt-5 sm:flex-row sm:items-center sm:justify-end sm:mt-0 sm:ps-5">
-            <Link
-              className="font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
+            <a
+              className="text-xl font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
               href="/"
               aria-current="page"
             >
               首頁
-            </Link>
+            </a>
             <a
-              className="font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
+              className="text-xl font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
               href="/borrow"
             >
               教室列表
             </a>
             <a
-              className="font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
+              className="text-xl font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
               href="#"
             >
               組員清單
@@ -112,7 +112,7 @@ export function Navbar() {
               <></>
             ) : (
               <Link
-                className="font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
+                className="text-xl font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
                 href="/login"
               >
                 登入
@@ -155,14 +155,14 @@ export function Navbar() {
                 aria-orientation="vertical"
                 aria-labelledby="hs-navbar-example-dropdown"
               >
-                <Link
-                  className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+                <a
+                  className="text-xl flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
                   href="/user"
                 >
                   個人資料
-                </Link>
+                </a>
                 <a
-                  className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+                  className="text-xl flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
                   onClick={() => logout()}
                 >
                   登出
