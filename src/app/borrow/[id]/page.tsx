@@ -194,6 +194,43 @@ export default function BorrowId() {
       return;
     }
 
+    try {
+      const response = await fetch(
+        "http://worldtimeapi.org/api/timezone/Etc/UTC",
+        {
+          method: "GET",
+        }
+      );
+
+      const json = await response.json();
+      const currentUnixTime = json.unixtime;
+      const selectedUnixTime = Math.floor(
+        new Date(selectedDate).getTime() / 1000
+      );
+
+      // 比較到日期的層級
+      const currentDate = new Date(currentUnixTime * 1000);
+      const selectedDateOnly = new Date(selectedUnixTime * 1000);
+
+      // 去掉時間部分，只保留年月日進行比較
+      currentDate.setHours(0, 0, 0, 0);
+      selectedDateOnly.setHours(0, 0, 0, 0);
+
+      if (currentDate.getTime() == selectedDateOnly.getTime()) {
+        setMessage("只能預約明天");
+        setMessageType(0);
+        return;
+      } else if (currentDate.getTime() > selectedDateOnly.getTime()) {
+        setMessage("無法預約過去的時間");
+        setMessageType(0);
+        return;
+      }
+    } catch (error) {
+      setMessage("無法取得時間");
+      setMessageType(0);
+      return;
+    }
+
     setIsDisabled(true);
 
     let borrowData = {
@@ -222,14 +259,15 @@ export default function BorrowId() {
       setMessage(json.message);
       setMessageType(json.success ? 1 : 0);
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
+      if (json.success == 1) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
     } catch (error) {
       console.error("Error:", error);
       setMessage(String(error));
       setMessageType(0);
-    } finally {
       setIsDisabled(false);
     }
   };
@@ -268,16 +306,18 @@ export default function BorrowId() {
       if (json.affectedRows > 0) {
         setMessage("成功更新教室");
         setMessageType(1);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        setMessage("更新教室失敗");
+        setMessageType(0);
+        setIsDisabled(false);
       }
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
     } catch (error) {
       console.error("Error:", error);
       setMessage(String(error));
       setMessageType(0);
-    } finally {
       setIsDisabled(false);
     }
   };
@@ -302,8 +342,6 @@ export default function BorrowId() {
       router.push("/borrow/");
     } catch (error) {
       console.error("Error:", error);
-    } finally {
-      setIsDisabled(true);
     }
   };
 
