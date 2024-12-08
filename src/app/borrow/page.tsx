@@ -2,6 +2,7 @@
 import checkPermission from "@/context/permissionCheck";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
 const fetcher = (url: string) =>
   fetch(url, {
@@ -12,6 +13,17 @@ const fetcher = (url: string) =>
 export default function Borrow() {
   const router = useRouter();
   const { data, isLoading } = checkPermission();
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] = useState<number | null>(0);
+  const [classroomName, setClassroomName] = useState<string>("");
+  const [classroomPlace, setClassroomPlace] = useState<string>("");
+  const [classroomDescription, setClassroomDescription] = useState<string>("");
+
+  const handleToggleModal = () => {
+    setModalOpen(!isModalOpen);
+  };
 
   const {
     data: swrData,
@@ -31,6 +43,54 @@ export default function Borrow() {
     }
   };
 
+  const startAddClassroom = async () => {
+    const isInvalidField = (value: string) => !value || /\s/.test(value);
+
+    if (isInvalidField(classroomName) || isInvalidField(classroomPlace) || isInvalidField(classroomDescription)) {
+      setMessage("全部欄位都必須填寫且不能有空白");
+      setMessageType(0);
+      return;
+    }
+
+    setIsDisabled(true);
+
+    let classroomData = {
+      name: classroomName,
+      place: classroomPlace,
+      description: classroomDescription,
+    };
+
+    try {
+      const response = await fetch("http://localhost:3001/classroom/addClassroom", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(classroomData),
+      });
+
+      const json = await response.json();
+
+      if (json.affectedRows > 0) {
+        setMessage("成功新增");
+        setMessageType(1);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        setMessage("新增失敗");
+        setMessageType(0);
+        setIsDisabled(false);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setMessage(String(error));
+      setMessageType(0);
+      setIsDisabled(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4">
       {isLoading || swrLoading ? (
@@ -38,17 +98,97 @@ export default function Borrow() {
       ) : (
         <>
           {!data ? (
-            <div>need to login</div>
+            <div className="mt-16">
+              <p className="text-lg md:text-5xl bg-clip-text bg-gradient-to-b from-neutral-200 to-neutral-600 text-center font-bold">需要登入帳號</p>
+            </div>
           ) : (
             <>
               <div className="h-16" />
               <div>
-                <p className="text-lg md:text-5xl bg-clip-text bg-gradient-to-b from-neutral-200 to-neutral-600 text-center font-bold">
-                  借用教室
-                </p>
+                <p className="text-lg md:text-5xl bg-clip-text bg-gradient-to-b from-neutral-200 to-neutral-600 text-center font-bold">教室列表</p>
               </div>
 
-              <div className="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto">
+              {data.role == "Admin" && (
+                <div className="max-w-[85rem] px-4 sm:px-6 lg:px-8 mx-auto">
+                  <button
+                    className="items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    aria-expanded={isModalOpen ? "true" : "false"}
+                    onClick={handleToggleModal}
+                    disabled={isDisabled}
+                  >
+                    新增教室
+                  </button>
+                </div>
+              )}
+
+              {isModalOpen && (
+                <div
+                  id="classroom-add"
+                  className="fixed inset-0 z-50 overflow-x-hidden overflow-y-auto flex items-center justify-center"
+                  role="dialog"
+                  tabIndex={0}
+                  onClick={handleToggleModal}
+                >
+                  <div
+                    className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-7 w-[500px] max-w-full"
+                    onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside the modal
+                  >
+                    <div className="text-center">
+                      <h3 id="classroom-add" className="block text-2xl font-bold text-gray-800">
+                        新增教室
+                      </h3>
+                    </div>
+                    <div className="h-6" />
+                    <div className="grid gap-y-4">
+                      <p className="block text-sm">教室名稱</p>
+                      <input
+                        id="name"
+                        type="text"
+                        className="h-12 w-full appearance-none rounded-lg border border-stroke bg-white pl-5 text-dark outline-none focus:border-[#3758f9]"
+                        value={classroomName}
+                        onChange={(event) => setClassroomName(event.target.value)}
+                      />
+
+                      <p className="block text-sm">教室位置</p>
+                      <input
+                        id="place"
+                        type="text"
+                        className="h-12 w-full appearance-none rounded-lg border border-stroke bg-white pl-5 text-dark outline-none focus:border-[#3758f9]"
+                        value={classroomPlace}
+                        onChange={(event) => setClassroomPlace(event.target.value)}
+                      />
+
+                      <p className="block text-sm">教室描述</p>
+                      <input
+                        id="description"
+                        type="text"
+                        className="h-12 w-full appearance-none rounded-lg border border-stroke bg-white pl-5 text-dark outline-none focus:border-[#3758f9]"
+                        value={classroomDescription}
+                        onChange={(event) => setClassroomDescription(event.target.value)}
+                      />
+
+                      <div>
+                        <button
+                          type="button"
+                          className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-green-500 text-white focus:outline-none disabled:pointer-events-none"
+                          onClick={startAddClassroom}
+                          disabled={isDisabled}
+                        >
+                          修改
+                        </button>
+                      </div>
+
+                      {message && (
+                        <div className={`p-4 text-sm rounded-lg ${messageType == 1 ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}>
+                          {message}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="max-w-[85rem] px-4 py-6 sm:px-6 lg:px-8 lg:py-8 mx-auto">
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {swrData.map(
                     (
@@ -60,19 +200,9 @@ export default function Borrow() {
                       },
                       index: number
                     ) => (
-                      <div
-                        key={index}
-                        className="group flex flex-col h-full bg-white border border-gray-200 shadow-sm rounded-xl"
-                      >
+                      <div key={index} className="group flex flex-col h-full bg-white border border-gray-200 shadow-sm rounded-xl">
                         <div className="h-52 flex flex-col justify-center items-center bg-blue-600 rounded-t-xl">
-                          <svg
-                            className="size-28"
-                            width="56"
-                            height="56"
-                            viewBox="0 0 56 56"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
+                          <svg className="size-28" width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect width="56" height="56" rx="10" fill="white" />
                             <path
                               d="M20.2819 26.7478C20.1304 26.5495 19.9068 26.4194 19.6599 26.386C19.4131 26.3527 19.1631 26.4188 18.9647 26.5698C18.848 26.6622 18.7538 26.78 18.6894 26.9144L10.6019 43.1439C10.4874 43.3739 10.4686 43.6401 10.5496 43.884C10.6307 44.1279 10.805 44.3295 11.0342 44.4446C11.1681 44.5126 11.3163 44.5478 11.4664 44.5473H22.7343C22.9148 44.5519 23.0927 44.5037 23.2462 44.4084C23.3998 44.3132 23.5223 44.1751 23.5988 44.011C26.0307 38.9724 24.5566 31.3118 20.2819 26.7478Z"
@@ -98,20 +228,18 @@ export default function Borrow() {
                           </svg>
                         </div>
                         <div className="p-4 md:p-6">
-                          <h3 className="text-xl font-semibold text-gray-800">
-                            {item.name}
-                          </h3>
+                          <h3 className="text-xl font-semibold text-gray-800">{item.name}</h3>
                           <p className="mt-3 text-gray-500">
                             {item.description} {item.place}
                           </p>
                         </div>
                         <div className="mt-auto flex border-t border-gray-200 divide-x divide-gray-200">
-                          <a
+                          <button
                             className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-m font-semibold rounded-es-xl bg-white shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
                             onClick={() => checkClassroom(item.id)}
                           >
                             查看教室
-                          </a>
+                          </button>
                         </div>
                       </div>
                     )
