@@ -1,10 +1,10 @@
 "use client";
 import { ChangeEvent, useState } from "react";
 import Link from "next/link";
-import checkPermission from "@/context/permissionCheck";
+import CheckPermission from "@/context/permissionCheck";
 
-export default function login() {
-  const { isLoading, isEmpty } = checkPermission();
+export default function Login() {
+  const { isLoading, isEmpty } = CheckPermission();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -34,19 +34,19 @@ export default function login() {
     })
       .then((res) => {
         if (res.status === 201) {
-          return 1;
+          return res.json();
         } else if (res.status === 401 || res.status === 500) {
           setPasswordIncorrect(true);
-          return -1;
+          return null;
         }
       })
       .catch((e) => {
         console.log(e);
         setPasswordIncorrect(true);
-        return -1;
+        return null;
       });
-    if (result === 1) {
-      window.location.href = "/user";
+    if (result !== null) {
+      window.location.href = "/UserService/UserInfo";
     }
     setSubmitLoading(false);
   }

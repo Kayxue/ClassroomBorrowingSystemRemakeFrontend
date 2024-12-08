@@ -16,7 +16,7 @@ export function Navbar() {
       <header className="relative flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-blue-600 text-sm py-3">
         <nav className="w-full mx-auto px-4 sm:flex sm:items-center sm:justify-between">
           <Link
-            className="flex-none text-xl font-semibold focus:outline-none focus:opacity-80 text-white opacity-50 hover:opacity-80"
+            className="flex-none text-2xl font-semibold focus:outline-none focus:opacity-80 text-white opacity-50 hover:opacity-80"
             href="/"
             aria-label="Brand"
           >
@@ -89,25 +89,25 @@ export function Navbar() {
           aria-labelledby="hs-navbar-example-collapse"
         >
           <div className="flex flex-col gap-5 mt-5 sm:flex-row sm:items-center sm:justify-end sm:mt-0 sm:ps-5">
-            <a
+            <Link
               className="text-xl font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
               href="/"
               aria-current="page"
             >
               首頁
-            </a>
-            <a
+            </Link>
+            <Link
               className="text-xl font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
               href="/borrow"
             >
               教室列表
-            </a>
-            <a
+            </Link>
+            <Link
               className="text-xl font-medium text-white opacity-50 hover:opacity-80 focus:opacity-80"
-              href="#"
+              href="/userList"
             >
               組員清單
-            </a>
+            </Link>
             {!isEmpty ? (
               <></>
             ) : (
@@ -155,12 +155,12 @@ export function Navbar() {
                 aria-orientation="vertical"
                 aria-labelledby="hs-navbar-example-dropdown"
               >
-                <a
+                <Link
                   className="text-xl flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-                  href="/user"
+                  href="/UserService/UserInfo"
                 >
                   個人資料
-                </a>
+                </Link>
                 <a
                   className="text-xl flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
                   onClick={() => logout()}
