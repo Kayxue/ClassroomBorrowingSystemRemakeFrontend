@@ -213,8 +213,8 @@ export default function UserProfile() {
                         type="text"
                         id="atDepartment"
                         className="bg-indigo-50 border border-indigo-300 text-indigo-900 text-base rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 "
-                        placeholder={data.department.name}
-                        value={data.department.name}
+                        // placeholder={data.department.name}
+                        // value={data.department.name}
                         readOnly
                       />
                     </div>
