@@ -1,99 +1,109 @@
 "use client";
+import checkPermission from "@/context/permissionCheck";
 import useSWR from "swr";
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
 
-// 用於從 API 抓取借用紀錄的 fetcher 函式
+type BorrowRecordsProps = {
+  type: number;
+  param?: any;
+};
+
+// Fetcher function for API calls
 const fetcher = (url: string) =>
   fetch(url, {
     method: "GET",
     credentials: "include",
   })
-  .then((res) => {
-    if (!res.ok) {
-      throw new Error(`Failed to fetch: ${res.statusText}`);
-    }
-    return res.json();
-  })
-  .catch((error) => {
-    console.error("Fetch error:", error);
-    return []; // 返回空陣列或其他預設資料
-  });
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`Failed to fetch: ${res.statusText}`);
+      }
+      return res.json();
+    })
+    .catch((error) => {
+      console.error("Fetch error:", error);
+      return []; // Return empty array or default data
+    });
 
-// 根據 classroomId 獲取課堂名稱
-const getName = async (classroomId: string) => {
-  try {
-    const response = await fetch(`http://localhost:3001/classroom/getClassroom/${classroomId}`);
+// type: 1 是 Borrow 使用, 2 是 User 使用
+// <RecordList type={1} param={classroomId} />
+// <RecordList type={2} />
 
-    if (!response.ok) {
-      throw new Error(`HTTP 錯誤! 狀態碼: ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (data && data.name) {
-      return data.name;
-    } else {
-      throw new Error('回應中未找到課堂名稱');
-    }
-  } catch (error) {
-    console.error('獲取課堂名稱失敗:', error);
-    return null;
-  }
-};
-
-export default function BorrowRecords() {
+export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
   const [isDisabled, setIsDisabled] = useState(false);
-  const [classroomNames, setClassroomNames] = useState<{ [key: string]: string | null }>({});
-  const params = useParams<{ id: string }>();
-  const borrowingId = params?.id;
+  const [activeTab, setActiveTab] = useState(1);
+  const { data, isLoading } = checkPermission();
 
-  // 使用 SWR 抓取今日借用紀錄
-  const { data, error, isLoading, mutate } = useSWR("http://localhost:3001/borrow/getTodayBorrow", fetcher, {
+  // 分頁相關狀態
+  const [currentPage1, setCurrentPage1] = useState(1);
+  const [currentPage2, setCurrentPage2] = useState(1);
+  const itemsPerPage = 10; // 每頁最多 10 筆
+
+  let url1, url2;
+
+  if (type === 1) {
+    url1 = `http://localhost:3001/classroom/getClassroom/${param}?borrows=true&isToday=true`;
+    url2 = `http://localhost:3001/classroom/getClassroom/${param}?borrows=true`;
+  } else if (type === 2) {
+    url1 = `http://localhost:3001/user/profile?isToday=true`;
+    url2 = `http://localhost:3001/user/profile`;
+  }
+
+  const {
+    data: todayBorrowResponse,
+    error: error1,
+    isLoading: isLoading1,
+    mutate: mutate1,
+  } = useSWR(url1, fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     shouldRetryOnError: false,
   });
 
-  // 格式化時間段
+  const {
+    data: allBorrowResponse,
+    error: error2,
+    isLoading: isLoading2,
+    mutate: mutate2,
+  } = useSWR(url2, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    shouldRetryOnError: false,
+  });
+
+  const tabButtonClasses = (tabNumber: number) => {
+    const baseClasses =
+      "relative min-w-0 flex-1 bg-white first:border-s-0 border-s border-b-2 py-4 px-4 text-sm font-medium text-center overflow-hidden focus:z-10 focus:outline-none disabled:opacity-50 disabled:pointer-events-none";
+    const activeClasses = "text-gray-900 border-b-blue-600";
+    const inactiveClasses = "text-gray-500 hover:text-gray-700 hover:bg-gray-50";
+
+    return `${baseClasses} ${activeTab === tabNumber ? activeClasses : inactiveClasses}`;
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
   };
 
   const formatTime = (from: number, to: number) => {
-    return `${'第'+from+(from == to ? "" : '到' + to)+'節'}`;
+    return `第${from}${from === to ? "" : `到${to}`}節`;
   };
 
-  // 當借用紀錄加載時，為每個借用紀錄的課堂名稱發送請求
-  useEffect(() => {
-    if (data) {
-      data.forEach(async (item: { borrowing: any; }) => {
-        const { borrowing } = item;
-        const classroomId = borrowing.classroomId;
-        if (!classroomNames[classroomId]) {
-          const name = await getName(classroomId);
-          setClassroomNames((prev) => ({ ...prev, [classroomId]: name }));
-        }
-      });
-    }
-  }, [data]); // 當 data 變化時觸發
-
-  const handleEdit = async () => {
-    // 編輯借用紀錄邏輯
-  };
-
-  const handleDelete = async () => {
-    if (isDisabled) return; // 防止重複刪除
-    if (!window.confirm("確定要刪除此紀錄嗎？")) return; // 加入刪除確認
-
+  const handleDelete = async (id: string, user: string, tabs: number) => {
+    if (isDisabled) return;
+    if (!window.confirm("確定要刪除此紀錄嗎？")) return;
     setIsDisabled(true);
-    let borrowingData = {
-      borrowingId: borrowingId,
-    };
+    const borrowingData = { borrowId: id };
+    tabs-=1;
     try {
-      const response = await fetch("http://localhost:3001/borrowing/deleteBorrow", {
-        method: "DELETE",
+      if(!(data.username === user) && data.role === "Teacher") {
+        window.confirm("不可刪除他人資料!")
+        return;
+      }
+
+      const response = await fetch("http://localhost:3001/borrow/deleteBorrow", {
+        method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
@@ -101,10 +111,9 @@ export default function BorrowRecords() {
         body: JSON.stringify(borrowingData),
       });
 
-      const result = await response.json();
       if (response.ok) {
         alert("刪除成功");
-        mutate(); // 使用SWR的mutate來重新抓取資料
+        !tabs?mutate1():mutate2();
       } else {
         alert("刪除失敗");
       }
@@ -116,72 +125,193 @@ export default function BorrowRecords() {
     }
   };
 
-  if (isLoading) return <div>載入中...</div>;
-  if (error) return <div>載入失敗</div>;
+  if (isLoading1 || isLoading2) return <div></div>;
+  if (error1 || error2) return <div>載入失敗</div>;
+
+  const classroomName = allBorrowResponse?.name || "未知教室";
+  const userName = allBorrowResponse?.username || "未知使用者";
+  const allBorrow = type === 1 ? allBorrowResponse?.borrowingDatas : allBorrowResponse?.borrows;
+  const todayBorrow = type === 1 ? todayBorrowResponse?.borrowingDatas : todayBorrowResponse?.borrows;
+
+  // 分頁資料計算
+  const totalToday = todayBorrow?.length || 0;
+  const totalPages1 = Math.ceil(totalToday / itemsPerPage);
+  const startIndex1 = (currentPage1 - 1) * itemsPerPage;
+  const endIndex1 = startIndex1 + itemsPerPage;
+  const pagedToday = todayBorrow?.slice(startIndex1, endIndex1) || [];
+
+  const totalAll = allBorrow?.length || 0;
+  const totalPages2 = Math.ceil(totalAll / itemsPerPage);
+  const startIndex2 = (currentPage2 - 1) * itemsPerPage;
+  const endIndex2 = startIndex2 + itemsPerPage;
+  const pagedAll = allBorrow?.slice(startIndex2, endIndex2) || [];
+
+  const handlePageChange1 = (page: number) => {
+    if (page < 1 || page > totalPages1) return;
+    setCurrentPage1(page);
+  };
+
+  const handlePageChange2 = (page: number) => {
+    if (page < 1 || page > totalPages2) return;
+    setCurrentPage2(page);
+  };
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="text-center my-6">
-        <h1 className="text-xl md:text-3xl font-bold">今日借用紀錄</h1>
-      </div>
+    <div className="mt-3 mb-5">
+      <nav className="relative z-0 flex border rounded-xl overflow-hidden my-6" aria-label="Tabs" role="tablist" aria-orientation="horizontal">
+        <button type="button" className={tabButtonClasses(1)} onClick={() => setActiveTab(1)} aria-selected={activeTab === 1}>
+          今日借用紀錄
+        </button>
+        <button type="button" className={tabButtonClasses(2)} onClick={() => setActiveTab(2)} aria-selected={activeTab === 2}>
+          全部借用紀錄
+        </button>
+      </nav>
 
-      <div className="max-w-[85rem] mx-auto">
-        <div className="overflow-hidden bg-white shadow sm:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-sm font-medium text-gray-500">教室名稱</th>
-                <th scope="col" className="px-6 py-3 text-left text-sm font-medium text-gray-500">使用者名稱</th>
-                <th scope="col" className="px-6 py-3 text-left text-sm font-medium text-gray-500">借用日期</th>
-                <th scope="col" className="px-6 py-3 text-left text-sm font-medium text-gray-500">借用時間</th>
-                <th scope="col" className="px-6 py-3 text-left text-sm font-medium text-gray-500">操作</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {data && data.length > 0 ? (
-                data.map((item: { user: { username: string, userId: string }, borrowing: { id: string, startTime: string, from: number, to: number, classroomId: string } }) => {
-                  const { user, borrowing } = item;
-                  const classroomName = classroomNames[borrowing.classroomId] || "載入中...";
-                  return (
-                    <tr key={borrowing.classroomId}>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                        <Link href={`/borrow/${borrowing.classroomId}`} className="text-blue-600 hover:text-blue-900">
-                          {classroomName}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        <Link href={`/user/${user.userId}`} className="text-blue-600 hover:text-blue-900">
-                          {user.username}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {formatDate(borrowing.startTime)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {formatTime(borrowing.from, borrowing.to)}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-right">
-                        <button onClick={handleEdit} className="text-blue-600 hover:text-blue-900 mr-2">
-                          修改時間
-                        </button>
-                        <button onClick={handleDelete} className="text-red-600 hover:text-red-900" disabled={isDisabled}>
-                          刪除
-                        </button>
+      {activeTab === 1 && (
+        <div role="tabpanel">
+          <div className="w-full mx-auto">
+            <div className="overflow-hidden bg-white shadow sm:rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">教室名稱</th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">使用者名稱</th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">借用日期</th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">借用時間</th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {pagedToday?.length > 0 ? (
+                    pagedToday.map((item: any, index: number) => (
+                      <tr key={index}>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          {type === 1 ? (
+                            todayBorrowResponse?.name
+                          ) : (
+                            <Link href={`/borrow/${item.classroomId}`} className="text-blue-600 hover:text-blue-900">
+                              {item.classroom.name}
+                            </Link>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{type === 1 ? item.user.username : userName}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{formatDate(item.startTime)}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{formatTime(item.from, item.to)}</td>
+                        <td className="px-6 py-4 text-sm font-medium">
+                          <button onClick={() => handleDelete(param, item.user.username, 1)} className="text-red-600 hover:text-red-900" disabled={isDisabled}>
+                            刪除
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                        沒有今日借用紀錄
                       </td>
                     </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
-                    沒有今日借用紀錄
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {/* 分頁按鈕 */}
+            {totalPages1 > 1 && (
+              <div className="flex justify-center items-center mt-4 space-x-2">
+                <button
+                  onClick={() => handlePageChange1(currentPage1 - 1)}
+                  disabled={currentPage1 === 1}
+                  className="px-3 py-1 bg-gray-200 rounded disabled:bg-gray-100"
+                >
+                  上一頁
+                </button>
+                <span className="text-sm">
+                  第 {currentPage1} 頁，共 {totalPages1} 頁
+                </span>
+                <button
+                  onClick={() => handlePageChange1(currentPage1 + 1)}
+                  disabled={currentPage1 === totalPages1}
+                  className="px-3 py-1 bg-gray-200 rounded disabled:bg-gray-100"
+                >
+                  下一頁
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {activeTab === 2 && (
+        <div role="tabpanel">
+          <div className="w-full mx-auto">
+            <div className="overflow-hidden bg-white shadow sm:rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">教室名稱</th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">使用者名稱</th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">借用日期</th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">借用時間</th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {pagedAll?.length > 0 ? (
+                    pagedAll.map((item: any, index: number) => (
+                      <tr key={index}>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          {type === 1 ? (
+                            classroomName
+                          ) : (
+                            <Link href={`/borrow/${item.classroomId}`} className="text-blue-600 hover:text-blue-900">
+                              {item.classroom.name}
+                            </Link>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{type === 1 ? item.user.username : userName}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{formatDate(item.startTime)}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{formatTime(item.from, item.to)}</td>
+                        <td className="px-6 py-4 text-sm font-medium">
+                          <button onClick={() => handleDelete(item.id, item.user.username ,2)} className="text-red-600 hover:text-red-900" disabled={isDisabled}>
+                            刪除
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                        沒有借用紀錄
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {/* 分頁按鈕 */}
+            {totalPages2 > 1 && (
+              <div className="flex justify-center items-center mt-4 space-x-2">
+                <button
+                  onClick={() => handlePageChange2(currentPage2 - 1)}
+                  disabled={currentPage2 === 1}
+                  className="px-3 py-1 bg-gray-200 rounded disabled:bg-gray-100"
+                >
+                  上一頁
+                </button>
+                <span className="text-sm">
+                  第 {currentPage2} 頁，共 {totalPages2} 頁
+                </span>
+                <button
+                  onClick={() => handlePageChange2(currentPage2 + 1)}
+                  disabled={currentPage2 === totalPages2}
+                  className="px-3 py-1 bg-gray-200 rounded disabled:bg-gray-100"
+                >
+                  下一頁
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
