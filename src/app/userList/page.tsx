@@ -35,6 +35,10 @@ const JobCards = () => {
   };
 
   async function submitDepartment() {
+    if(departmentName === "" || departmentLocation === "" || departmentDescription === "") {
+      alert("請填寫完整資料");
+      return;
+    }
     setSubmitLoading(true);
     await fetch("http://localhost:3001/department/addDepartment", {
       method: "POST",
