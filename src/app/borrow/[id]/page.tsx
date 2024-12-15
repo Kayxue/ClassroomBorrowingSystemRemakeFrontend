@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import RecordList from "../../../components/RecordList";
 
 const fetcher = (url: string) =>
   fetch(url, {
@@ -785,6 +786,7 @@ export default function BorrowId() {
                   </div>
                 </div>
               )}
+              <RecordList type={1} param={classroomId} />
             </>
           )}
         </>
