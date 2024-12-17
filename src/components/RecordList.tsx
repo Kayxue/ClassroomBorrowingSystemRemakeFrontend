@@ -169,6 +169,11 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
     if (page < 1 || page > totalPages2) return;
     setCurrentPage2(page);
   };
+
+  const handleFilterChange = () => {
+    setFilterBeforeToday(!filterBeforeToday);
+    setCurrentPage2(1); // 重置到第一頁
+  };
   
   const isToday = (date: string) => {
     const targetDate = new Date(date);
@@ -198,7 +203,7 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
             type="checkbox"
             id="filterCheckbox"
             checked={filterBeforeToday}
-            onChange={() => setFilterBeforeToday(!filterBeforeToday)}
+            onChange={handleFilterChange}
             className="mr-2"
           />
           <label htmlFor="filterCheckbox" className="text-sm text-gray-700">
@@ -315,7 +320,7 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
                       <tr key={index}
                       className={`${
                         isToday(item.startTime)
-                          ? "bg-green-100 text-green-700 font-bold"
+                          ? "bg-yellow-100 text-yellow-700 font-bold"
                           : isBeforeToday(item.startTime)
                             ? "bg-red-100 text-red-700"
                             : ""
