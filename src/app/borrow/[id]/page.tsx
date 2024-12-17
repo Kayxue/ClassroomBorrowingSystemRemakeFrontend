@@ -72,7 +72,7 @@ export default function BorrowId() {
     for (let i = 1; i <= daysInMonth; i++) {
       const dayDiv = document.createElement("div");
       dayDiv.className =
-        "flex h-[30px] w-[30px] items-center justify-center rounded-[7px] border-[.5px] border-transparent text-dark hover:border-stroke hover:bg-gray-2 sm:h-[40px] sm:w-[40px] mb-2";
+        "flex h-[20px] w-[40px] items-center justify-center rounded-[7px] border-[.5px] border-transparent text-dark hover:border-stroke hover:bg-gray-2 mb-2";
       dayDiv.textContent = i.toString(); // 使用 padStart 來補零
 
       dayDiv.addEventListener("click", () => {
@@ -166,62 +166,29 @@ export default function BorrowId() {
     setIsModalOpen2(false);
   };
 
-  const {
-    data: swrData,
-    error: swrError,
-    isLoading: swrLoading,
-  } = useSWR(`http://localhost:3001/classroom/getClassroom/${classroomId}`, fetcher, {
+  const { data: swrData, isLoading: swrLoading } = useSWR(`http://localhost:3001/classroom/getClassroom/${classroomId}`, fetcher, {
     revalidateOnFocus: false, // Disable re-fetching when the window is refocused
     revalidateOnReconnect: false, // Disable re-fetching on network reconnect
     shouldRetryOnError: false, // Disable retrying on error
   });
 
   const startBorrow = async () => {
+    if (isDisabled) return;
+    setIsDisabled(true);
+
     if (!selectedDate?.trim() || !selectedValue || !selectedValue2) {
       setMessage("全部欄位都必須填寫");
       setMessageType(0);
+      setIsDisabled(false);
       return;
     }
 
     if (selectedValue > selectedValue2) {
       setMessage("時間輸入錯誤，開始時間應早於結束時間");
       setMessageType(0);
+      setIsDisabled(false);
       return;
     }
-
-    try {
-      const response = await fetch("http://worldtimeapi.org/api/timezone/Etc/UTC", {
-        method: "GET",
-      });
-
-      const json = await response.json();
-      const currentUnixTime = json.unixtime;
-      const selectedUnixTime = Math.floor(new Date(selectedDate).getTime() / 1000);
-
-      // 比較到日期的層級
-      const currentDate = new Date(currentUnixTime * 1000);
-      const selectedDateOnly = new Date(selectedUnixTime * 1000);
-
-      // 去掉時間部分，只保留年月日進行比較
-      currentDate.setHours(0, 0, 0, 0);
-      selectedDateOnly.setHours(0, 0, 0, 0);
-
-      if (currentDate.getTime() == selectedDateOnly.getTime()) {
-        setMessage("只能預約明天");
-        setMessageType(0);
-        return;
-      } else if (currentDate.getTime() > selectedDateOnly.getTime()) {
-        setMessage("無法預約過去的時間");
-        setMessageType(0);
-        return;
-      }
-    } catch (error) {
-      setMessage("無法取得時間");
-      setMessageType(0);
-      return;
-    }
-
-    setIsDisabled(true);
 
     let borrowData = {
       userId: data.id,
@@ -250,6 +217,8 @@ export default function BorrowId() {
         setTimeout(() => {
           window.location.reload();
         }, 2000);
+      } else {
+        setIsDisabled(false);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -259,16 +228,18 @@ export default function BorrowId() {
     }
   };
 
-  const startBorrowEdit = async () => {
+  const startClassroomEdit = async () => {
+    if (isDisabled) return;
+    setIsDisabled(true);
+
     const isInvalidField = (value: string) => !value || /\s/.test(value);
 
     if (isInvalidField(classroomName) || isInvalidField(classroomPlace) || isInvalidField(classroomDescription)) {
       setMessage("全部欄位都必須填寫且不能有空白");
       setMessageType(0);
+      setIsDisabled(false);
       return;
     }
-
-    setIsDisabled(true);
 
     let borrowData = {
       classroomId: classroomId,
@@ -309,6 +280,7 @@ export default function BorrowId() {
   };
 
   const deleteClassroom = async () => {
+    if (isDisabled) return;
     setIsDisabled(true);
 
     let classroomData = {
@@ -332,7 +304,7 @@ export default function BorrowId() {
   };
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto px-20">
       {isLoading || swrLoading ? (
         <div></div>
       ) : (
@@ -377,7 +349,7 @@ export default function BorrowId() {
 
               {data.role == "Admin" && (
                 <button
-                  className="py-3 px-4 mx-1 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-black text-white focus:outline-none disabled:pointer-events-none"
+                  className="py-3 px-4 mx-1 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-gray-950 hover:bg-gray-800 focus:bg-gray-800 text-white focus:outline-none disabled:pointer-events-none"
                   aria-expanded={isModalOpen2 ? "true" : "false"}
                   onClick={openModal2}
                   disabled={isDisabled}
@@ -388,7 +360,7 @@ export default function BorrowId() {
 
               {data.role == "Admin" && (
                 <button
-                  className="py-3 px-4 mx-1 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-red-600 text-white focus:outline-none disabled:pointer-events-none"
+                  className="py-3 px-4 mx-1 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-red-600 hover:bg-red-700 focus:bg-red-700 text-white focus:outline-none disabled:pointer-events-none"
                   aria-expanded={isModalOpen3 ? "true" : "false"}
                   onClick={handleToggleModal3}
                   disabled={isDisabled}
@@ -400,7 +372,7 @@ export default function BorrowId() {
               {isModalOpen3 && (
                 <div
                   id="hs-danger-alert"
-                  className="size-full fixed inset-0 z-50 overflow-x-hidden overflow-y-auto flex items-center justify-center"
+                  className="size-full fixed inset-0 z-50 overflow-x-hidden overflow-y-auto flex items-center justify-center bg-black bg-opacity-50"
                   role="dialog"
                   tabIndex={2}
                   aria-labelledby="hs-danger-alert-label"
@@ -473,7 +445,7 @@ export default function BorrowId() {
                         </button>
                         <button
                           type="button"
-                          className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-red-500 text-white hover:bg-red-600 disabled:pointer-events-none"
+                          className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-red-600 hover:bg-red-700 focus:bg-red-700 text-white disabled:pointer-events-none"
                           onClick={deleteClassroom}
                           disabled={isDisabled}
                         >
@@ -488,7 +460,7 @@ export default function BorrowId() {
               {isModalOpen2 && (
                 <div
                   id="borrow-classroom-edit"
-                  className="fixed inset-0 z-50 overflow-x-hidden overflow-y-auto flex items-center justify-center"
+                  className="fixed inset-0 z-50 overflow-x-hidden overflow-y-auto flex items-center justify-center bg-black bg-opacity-50"
                   role="dialog"
                   tabIndex={0}
                   onClick={closeModal2}
@@ -534,8 +506,8 @@ export default function BorrowId() {
                       <div>
                         <button
                           type="button"
-                          className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-green-500 text-white focus:outline-none disabled:pointer-events-none"
-                          onClick={startBorrowEdit}
+                          className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-gray-950 hover:bg-gray-800 focus:bg-gray-800 text-white focus:outline-none disabled:pointer-events-none"
+                          onClick={startClassroomEdit}
                           disabled={isDisabled}
                         >
                           修改
@@ -555,7 +527,7 @@ export default function BorrowId() {
               {isModalOpen && (
                 <div
                   id="borrow-classroom"
-                  className="fixed inset-0 z-50 overflow-x-hidden overflow-y-auto flex items-center justify-center"
+                  className="fixed inset-0 z-50 overflow-x-hidden overflow-y-auto flex items-center justify-center bg-black bg-opacity-50"
                   role="dialog"
                   tabIndex={-1}
                   onClick={closeModal}
@@ -646,7 +618,7 @@ export default function BorrowId() {
                             <div className="flex items-center justify-between pb-2">
                               <button
                                 id="prevMonth"
-                                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-stroke bg-gray-2 text-dark hover:border-[#3758f9] hover:bg-[#3758f9] hover:text-white"
+                                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border border-stroke bg-gray-2 text-dark hover:border-[#3758f9] hover:bg-[#3758f9] hover:text-white"
                                 onClick={handlePrevMonth}
                               >
                                 <svg
@@ -661,7 +633,7 @@ export default function BorrowId() {
                                 </svg>
                               </button>
 
-                              <span id="currentMonth" className="text-lg font-medium capitalize text-dark">
+                              <span id="currentMonth" className="text-base font-medium capitalize text-dark">
                                 {currentDate.toLocaleDateString("zh-TW", {
                                   month: "long",
                                   year: "numeric",
@@ -670,7 +642,7 @@ export default function BorrowId() {
 
                               <button
                                 id="nextMonth"
-                                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-stroke bg-gray-2 text-dark hover:border-[#3758f9] hover:bg-[#3758f9] hover:text-white"
+                                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border border-stroke bg-gray-2 text-dark hover:border-[#3758f9] hover:bg-[#3758f9] hover:text-white"
                                 onClick={handleNextMonth}
                               >
                                 <svg
@@ -700,16 +672,15 @@ export default function BorrowId() {
                             <div className="flex items-center space-x-2 pt-3">
                               <button
                                 id="cancelBtn"
-                                className="flex h-10 w-full items-center justify-center rounded-md border border-[#3758f9] text-[#3758f9] border-opacity-100 text-sm font-medium"
+                                className="flex h-8 w-full items-center justify-center rounded-md border border-[#3758f9] text-[#3758f9] border-opacity-100 text-sm font-medium"
                                 onClick={handleCancel}
                               >
                                 取消
                               </button>
                               <button
                                 id="cancelBtn"
-                                className="flex h-10 w-full items-center justify-center border rounded-md bg-[#3758f9] text-sm font-medium text-white"
+                                className="flex h-8 w-full items-center justify-center border rounded-md bg-[#3758f9] text-sm font-medium text-white"
                                 onClick={handleApply}
-                                disabled={isDisabled}
                               >
                                 確認
                               </button>
@@ -731,14 +702,14 @@ export default function BorrowId() {
                               <option value="" disabled>
                                 請選擇
                               </option>
-                              <option value={1}>1</option>
-                              <option value={2}>2</option>
-                              <option value={3}>3</option>
-                              <option value={4}>4</option>
-                              <option value={5}>5</option>
-                              <option value={6}>6</option>
-                              <option value={7}>7</option>
-                              <option value={8}>8</option>
+                              <option value={1}>1 [08:20~09:10]</option>
+                              <option value={2}>2 [09:20~10:10]</option>
+                              <option value={3}>3 [10:20~11:10]</option>
+                              <option value={4}>4 [11:15~12:05]</option>
+                              <option value={5}>5 [12:10~13:00]</option>
+                              <option value={6}>6 [13:10~14:00]</option>
+                              <option value={7}>7 [14:10~15:00]</option>
+                              <option value={8}>8 [15:10~16:00]</option>
                             </select>
                           </div>
                         </div>
@@ -755,14 +726,14 @@ export default function BorrowId() {
                               <option value="" disabled>
                                 請選擇
                               </option>
-                              <option value={1}>1</option>
-                              <option value={2}>2</option>
-                              <option value={3}>3</option>
-                              <option value={4}>4</option>
-                              <option value={5}>5</option>
-                              <option value={6}>6</option>
-                              <option value={7}>7</option>
-                              <option value={8}>8</option>
+                              <option value={1}>1 [08:20~09:10]</option>
+                              <option value={2}>2 [09:20~10:10]</option>
+                              <option value={3}>3 [10:20~11:10]</option>
+                              <option value={4}>4 [11:15~12:05]</option>
+                              <option value={5}>5 [12:10~13:00]</option>
+                              <option value={6}>6 [13:10~14:00]</option>
+                              <option value={7}>7 [14:10~15:00]</option>
+                              <option value={8}>8 [15:10~16:00]</option>
                             </select>
                           </div>
                         </div>
@@ -771,6 +742,7 @@ export default function BorrowId() {
                           type="button"
                           className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:bg-blue-700 disabled:pointer-events-none"
                           onClick={startBorrow}
+                          disabled={isDisabled}
                         >
                           預約
                         </button>

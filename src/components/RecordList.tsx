@@ -11,19 +11,14 @@ type BorrowRecordsProps = {
 
 // Fetcher function for API calls
 const fetcher = (url: string) =>
-  fetch(url, {
-    method: "GET",
-    credentials: "include",
-  })
+  fetch(url, { method: "GET", credentials: "include" })
     .then((res) => {
-      if (!res.ok) {
-        throw new Error(`Failed to fetch: ${res.statusText}`);
-      }
+      if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);
       return res.json();
     })
     .catch((error) => {
       console.error("Fetch error:", error);
-      return []; // Return empty array or default data
+      return { borrowingDatas: [], borrows: [] }; // Return safe default
     });
 
 // type: 1 是 Borrow 使用, 2 是 User 使用
@@ -73,6 +68,9 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
     shouldRetryOnError: false,
   });
 
+  if (isLoading1 || isLoading2 || isLoading) return <div></div>;
+  if (error1 || error2) return <div>載入失敗</div>;
+
   const tabButtonClasses = (tabNumber: number) => {
     const baseClasses =
       "relative min-w-0 flex-1 bg-white first:border-s-0 border-s border-b-2 py-4 px-4 text-sm font-medium text-center overflow-hidden focus:z-10 focus:outline-none disabled:opacity-50 disabled:pointer-events-none";
@@ -91,18 +89,15 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
     return `第${from}${from === to ? "" : `到${to}`}節`;
   };
 
-  const handleDelete = async (id: string, user: string, tabs: number) => {
+  const handleDelete = async (id: string, tabs: number) => {
     if (isDisabled) return;
     if (!window.confirm("確定要刪除此紀錄嗎？")) return;
-    setIsDisabled(true);
-    const borrowingData = { borrowId: id };
-    tabs-=1;
-    try {
-      if(!(data.username === user) && data.role === "Teacher") {
-        window.confirm("不可刪除他人資料!")
-        return;
-      }
 
+    setIsDisabled(true);
+
+    const borrowingData = { userId: data.id, borrowId: id };
+
+    try {
       const response = await fetch("http://localhost:3001/borrow/deleteBorrow", {
         method: "POST",
         credentials: "include",
@@ -114,7 +109,8 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
 
       if (response.ok) {
         alert("刪除成功");
-        !tabs?mutate1():mutate2();
+        mutate1();
+        mutate2();
       } else {
         alert("刪除失敗");
       }
@@ -126,26 +122,22 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
     }
   };
 
-  if (isLoading1 || isLoading2) return <div></div>;
-  if (error1 || error2) return <div>載入失敗</div>;
-
-  const classroomName = allBorrowResponse?.name || "未知教室";
   const userName = allBorrowResponse?.username || "未知使用者";
 
   const today = new Date();
   today.setHours(0, 0, 0, 0); // 設定當日的時間為 00:00:00
 
   const allBorrow = (type === 1 ? allBorrowResponse?.borrowingDatas : allBorrowResponse?.borrows)
-  ?.filter((item: any) =>
-    filterBeforeToday ? new Date(item.startTime) >= today : true // 過濾今天以前的資料
-  )
-  .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()); // 按借用日期排序
+    ?.filter(
+      (item: any) => (filterBeforeToday ? new Date(item.startTime) >= today : true) // 過濾今天以前的資料
+    )
+    .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()); // 按借用日期排序
 
   const todayBorrow = (type === 1 ? todayBorrowResponse?.borrowingDatas : todayBorrowResponse?.borrows)
-  ?.filter((item: any) =>
-    filterBeforeToday ? new Date(item.startTime) >= today : true // 過濾今天以前的資料
-  )
-  .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()); // 按借用日期排序
+    ?.filter(
+      (item: any) => (filterBeforeToday ? new Date(item.startTime) >= today : true) // 過濾今天以前的資料
+    )
+    .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()); // 按借用日期排序
 
   // 分頁資料計算
   const totalToday = todayBorrow?.length || 0;
@@ -174,7 +166,7 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
     setFilterBeforeToday(!filterBeforeToday);
     setCurrentPage2(1); // 重置到第一頁
   };
-  
+
   const isToday = (date: string) => {
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0); // 將目標日期時間歸零
@@ -199,13 +191,7 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
       </nav>
       {activeTab !== 1 && (
         <div className="mb-4 flex items-center">
-          <input
-            type="checkbox"
-            id="filterCheckbox"
-            checked={filterBeforeToday}
-            onChange={handleFilterChange}
-            className="mr-2"
-          />
+          <input type="checkbox" id="filterCheckbox" checked={filterBeforeToday} onChange={handleFilterChange} className="mr-2" />
           <label htmlFor="filterCheckbox" className="text-sm text-gray-700">
             過濾今天以前的資料
           </label>
@@ -218,48 +204,39 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">教室名稱</th>
+                    {type === 2 ? <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">教室名稱</th> : null}
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">使用者名稱</th>
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">借用日期</th>
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">借用時間</th>
-                    {data.role === "Admin"?
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">操作</th>
-                      :null
-                    }
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">操作</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {pagedToday?.length > 0 ? (
                     pagedToday.map((item: any, index: number) => (
-                      <tr key={index}
+                      <tr
+                        key={index}
                         className={`${
-                          isToday(item.startTime)
-                            ? "bg-yellow-100 text-yellow-700 font-bold"
-                            : isBeforeToday(item.startTime)
-                              ? "bg-red-100 text-red-700"
-                              : ""
+                          isToday(item.startTime) ? "bg-yellow-100 text-yellow-700" : isBeforeToday(item.startTime) ? "bg-red-100 text-red-700" : ""
                         }`}
                       >
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                          {type === 1 ? (
-                            todayBorrowResponse?.name
-                          ) : (
+                        {type === 1 ? null : (
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">
                             <Link href={`/borrow/${item.classroomId}`} className="text-blue-600 hover:text-blue-900">
                               {item.classroom.name}
                             </Link>
-                          )}
-                        </td>
+                          </td>
+                        )}
                         <td className="px-6 py-4 text-sm text-gray-500">{type === 1 ? item.user.username : userName}</td>
                         <td className="px-6 py-4 text-sm text-gray-500">{formatDate(item.startTime)}</td>
                         <td className="px-6 py-4 text-sm text-gray-500">{formatTime(item.from, item.to)}</td>
-                        {data.role === "Teacher"?
-                          <td className="px-6 py-4 text-sm font-medium">
-                            <button onClick={() => handleDelete(param, item.user.username, 1)} className="text-red-600 hover:text-red-900" disabled={isDisabled}>
+                        <td className="px-6 py-4 text-sm font-medium">
+                          {data.role === "Admin" || data.username === (type === 1 ? item.user.username : userName) ? (
+                            <button onClick={() => handleDelete(item.id, 1)} className="text-red-600 hover:text-red-900" disabled={isDisabled}>
                               刪除
                             </button>
-                          </td>
-                        :null
-                        }
+                          ) : null}
+                        </td>
                       </tr>
                     ))
                   ) : (
@@ -305,47 +282,39 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">教室名稱</th>
+                    {type === 2 ? <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">教室名稱</th> : null}
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">使用者名稱</th>
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">借用日期</th>
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">借用時間</th>
-                    {data.role === "Admin"?
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">操作</th>
-                      :null
-                    }                  </tr>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">操作</th>
+                  </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {pagedAll?.length > 0 ? (
                     pagedAll.map((item: any, index: number) => (
-                      <tr key={index}
-                      className={`${
-                        isToday(item.startTime)
-                          ? "bg-yellow-100 text-yellow-700 font-bold"
-                          : isBeforeToday(item.startTime)
-                            ? "bg-red-100 text-red-700"
-                            : ""
-                      }`}
+                      <tr
+                        key={index}
+                        className={`${
+                          isToday(item.startTime) ? "bg-yellow-100 text-yellow-700" : isBeforeToday(item.startTime) ? "bg-red-100 text-red-700" : ""
+                        }`}
                       >
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                          {type === 1 ? (
-                            classroomName
-                          ) : (
+                        {type === 2 ? (
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">
                             <Link href={`/borrow/${item.classroomId}`} className="text-blue-600 hover:text-blue-900">
                               {item.classroom.name}
                             </Link>
-                          )}
-                        </td>
+                          </td>
+                        ) : null}
                         <td className="px-6 py-4 text-sm text-gray-500">{type === 1 ? item.user.username : userName}</td>
                         <td className="px-6 py-4 text-sm text-gray-500">{formatDate(item.startTime)}</td>
                         <td className="px-6 py-4 text-sm text-gray-500">{formatTime(item.from, item.to)}</td>
-                        {data.role === "Admin"?
-                          <td className="px-6 py-4 text-sm font-medium">
-                            <button onClick={() => handleDelete(item.id, item.user.username ,2)} className="text-red-600 hover:text-red-900" disabled={isDisabled}>
+                        <td className="px-6 py-4 text-sm font-medium">
+                          {data.role === "Admin" || data.username === (type === 1 ? item.user.username : userName) ? (
+                            <button onClick={() => handleDelete(item.id, 2)} className="text-red-600 hover:text-red-900" disabled={isDisabled}>
                               刪除
                             </button>
-                          </td>
-                          :null
-                        }
+                          ) : null}
+                        </td>
                       </tr>
                     ))
                   ) : (
