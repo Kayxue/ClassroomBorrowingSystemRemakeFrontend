@@ -18,7 +18,7 @@ export default function PrelineScript() {
       window.HSStaticMethods.autoInit();
     };
 
-    setTimeout(loadPreline, 500);
+    setTimeout(loadPreline, 1000);
   }, [path]);
 
   return null;
