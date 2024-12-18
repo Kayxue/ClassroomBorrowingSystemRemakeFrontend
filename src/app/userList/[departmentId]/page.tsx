@@ -821,7 +821,7 @@ export default function DepartmentPage() {
                                       defaultValue={member.departmentId}
                                     >
                                       <option value="">選擇</option>
-                                      {allDepartmentsData?.map((department: { id: string; name: string }) => (
+                                      {allDepartmentsData?.departmentWithUserCount?.map((department: { id: string; name: string }) => (
                                         <option key={department.id} value={department.id}>
                                           {department.name}
                                         </option>
