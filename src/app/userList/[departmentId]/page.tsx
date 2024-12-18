@@ -22,15 +22,11 @@ export default function DepartmentPage() {
     data: departmentData,
     isLoading: departmentLoading,
     mutate: mutateDepartmentData,
-  } = useSWR(
-    `http://localhost:3001/department/getDepartment/${idDepartment}?members=true`,
-    fetcher,
-    {
-      revalidateOnFocus: false, // Disable re-fetching when the window is refocused
-      revalidateOnReconnect: false, // Disable re-fetching on network reconnect
-      shouldRetryOnError: false, // Disable retrying on error
-    }
-  );
+  } = useSWR(`http://localhost:3001/department/getDepartment/${idDepartment}?members=true`, fetcher, {
+    revalidateOnFocus: false, // Disable re-fetching when the window is refocused
+    revalidateOnReconnect: false, // Disable re-fetching on network reconnect
+    shouldRetryOnError: false, // Disable retrying on error
+  });
 
   const {
     data: allDepartmentsData,
@@ -66,15 +62,11 @@ export default function DepartmentPage() {
     setDepartmentName(e.target.value);
   };
 
-  const onDepartmentLocationChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const onDepartmentLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDepartmentLocation(e.target.value);
   };
 
-  const onDepartmentDescriptionChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
+  const onDepartmentDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDepartmentDescription(e.target.value);
   };
 
@@ -118,11 +110,7 @@ export default function DepartmentPage() {
 
   async function submitUpdateDepartment() {
     setSubmitLoading(true);
-    if (
-      departmentName === "" &&
-      departmentLocation === "" &&
-      departmentDescription === ""
-    ) {
+    if (departmentName === "" && departmentLocation === "" && departmentDescription === "") {
       alert("請輸入部門信息");
       setSubmitLoading(false);
       return;
@@ -134,10 +122,8 @@ export default function DepartmentPage() {
       description: departmentDescription,
     };
     data.name = data.name === "" ? departmentData?.name : data.name;
-    data.location =
-      data.location === "" ? departmentData?.location : data.location;
-    data.description =
-      data.description === "" ? departmentData?.description : data.description;
+    data.location = data.location === "" ? departmentData?.location : data.location;
+    data.description = data.description === "" ? departmentData?.description : data.description;
 
     await fetch(`http://localhost:3001/department/updateDepartment`, {
       method: "POST",
@@ -174,13 +160,7 @@ export default function DepartmentPage() {
 
   async function submitAddUser() {
     setSubmitLoading(true);
-    if (
-      newUsername === "" ||
-      newUserEmail === "" ||
-      newUserJob === "" ||
-      newUserExtension === "" ||
-      newUserRole === ""
-    ) {
+    if (newUsername === "" || newUserEmail === "" || newUserJob === "" || newUserExtension === "" || newUserRole === "") {
       alert("請輸入完整信息");
       setSubmitLoading(false);
       return;
@@ -250,14 +230,7 @@ export default function DepartmentPage() {
       return;
     }
 
-    if (
-      newUsername === "" &&
-      newUserEmail === "" &&
-      newUserJob === "" &&
-      newUserExtension === "" &&
-      newUserRole === "" &&
-      userNewDepartment === ""
-    ) {
+    if (newUsername === "" && newUserEmail === "" && newUserJob === "" && newUserExtension === "" && newUserRole === "" && userNewDepartment === "") {
       alert("請輸入修改信息");
       return;
     }
@@ -272,17 +245,12 @@ export default function DepartmentPage() {
       departmentId: userNewDepartment,
     };
 
-    userForm.username =
-      userForm.username === "" ? member.username : userForm.username;
+    userForm.username = userForm.username === "" ? member.username : userForm.username;
     userForm.email = userForm.email === "" ? member.email : userForm.email;
     userForm.job = userForm.job === "" ? member.job : userForm.job;
-    userForm.extension =
-      userForm.extension === "" ? member.extension : userForm.extension;
+    userForm.extension = userForm.extension === "" ? member.extension : userForm.extension;
     userForm.role = userForm.role === "" ? member.role : userForm.role;
-    userForm.departmentId =
-      userForm.departmentId === ""
-        ? member.departmentId
-        : userForm.departmentId;
+    userForm.departmentId = userForm.departmentId === "" ? member.departmentId : userForm.departmentId;
 
     setSubmitLoading(true);
     await fetch("http://localhost:3001/user/updateInfo", {
@@ -377,19 +345,14 @@ export default function DepartmentPage() {
     });
   }
 
-  if (departmentLoading || isLoading || allDepartmentsLoading)
-    return <div></div>;
+  if (departmentLoading || isLoading || allDepartmentsLoading) return <div></div>;
 
   return (
     <div className="mx-36 my-12">
       <div className="flex flex-col mx-8 mt-4 mb-2 bg-white border shadow-sm rounded-xl">
         <div className="flex justify-start items-center border-b rounded-t-xl py-3 px-4 gap-2 md:px-5">
-          <h3 className="text-3xl font-bold text-gray-800">
-            {departmentData?.name}
-          </h3>
-          <p className="text-base">
-            共 {departmentData?.members.length} 位成員
-          </p>
+          <h3 className="text-3xl font-bold text-gray-800">{departmentData?.name}</h3>
+          <p className="text-base">共 {departmentData?.members.length} 位成員</p>
         </div>
         <div className="py-2 md:px-5 text-lg">
           <p className="mt-2 text-black">地點：{departmentData?.location}</p>
@@ -401,11 +364,7 @@ export default function DepartmentPage() {
       </div>
 
       <div className="mx-8 mt-6">
-        <div
-          className={`mb-4 inline-flex gap-x-4 ${
-            data?.role === "Admin" ? `` : `hidden`
-          } `}
-        >
+        <div className={`mb-4 inline-flex gap-x-4 ${data?.role === "Admin" ? `` : `hidden`} `}>
           <button
             type="button"
             className="py-3 px-8 inline-flex items-center gap-x-2 -mt-px -ms-px rounded-full  text-sm font-medium focus:z-10 border border-gray-200 bg-blue-600 text-white shadow-sm focus:outline-none disabled:opacity-50 disabled:pointer-events-none "
@@ -427,10 +386,7 @@ export default function DepartmentPage() {
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
                 <div className="p-4 sm:p-7">
                   <div className="text-center">
-                    <h3
-                      id="hs-modal-add-department-label"
-                      className="block text-2xl font-bold text-gray-800 "
-                    >
+                    <h3 id="hs-modal-add-department-label" className="block text-2xl font-bold text-gray-800 ">
                       修改部門信息
                     </h3>
                   </div>
@@ -438,10 +394,7 @@ export default function DepartmentPage() {
                   <div className="mt-5">
                     <div className="grid gap-y-4">
                       <div>
-                        <label
-                          htmlFor="department-name"
-                          className="block text-sm mb-2"
-                        >
+                        <label htmlFor="department-name" className="block text-sm mb-2">
                           部門名稱
                         </label>
                         <div className="relative">
@@ -458,10 +411,7 @@ export default function DepartmentPage() {
                       </div>
 
                       <div>
-                        <label
-                          htmlFor="department-location"
-                          className="block text-sm mb-2"
-                        >
+                        <label htmlFor="department-location" className="block text-sm mb-2">
                           部門位置
                         </label>
                         <div className="relative">
@@ -477,10 +427,7 @@ export default function DepartmentPage() {
                         </div>
                       </div>
                       <div>
-                        <label
-                          htmlFor="department-description"
-                          className="block text-sm mb-2"
-                        >
+                        <label htmlFor="department-description" className="block text-sm mb-2">
                           部門描述
                         </label>
                         <div className="relative">
@@ -550,10 +497,7 @@ export default function DepartmentPage() {
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
                 <div className="p-4 sm:p-7">
                   <div className="text-center">
-                    <h3
-                      id="hs-modal-add-department-label"
-                      className="block text-2xl font-bold text-gray-800 "
-                    >
+                    <h3 id="hs-modal-add-department-label" className="block text-2xl font-bold text-gray-800 ">
                       添加成員
                     </h3>
                   </div>
@@ -562,10 +506,7 @@ export default function DepartmentPage() {
                     <div>
                       <div className="grid gap-y-4">
                         <div>
-                          <label
-                            htmlFor="new-username"
-                            className="block text-sm mb-2"
-                          >
+                          <label htmlFor="new-username" className="block text-sm mb-2">
                             使用者名稱
                           </label>
                           <div className="relative">
@@ -581,10 +522,7 @@ export default function DepartmentPage() {
                           </div>
                         </div>
                         <div>
-                          <label
-                            htmlFor="new-user-role"
-                            className="block text-sm mb-2"
-                          >
+                          <label htmlFor="new-user-role" className="block text-sm mb-2">
                             角色
                           </label>
                           <div className="relative">
@@ -628,10 +566,7 @@ export default function DepartmentPage() {
                           </div>
                         </div>
                         <div>
-                          <label
-                            htmlFor="new-user-email"
-                            className="block text-sm mb-2"
-                          >
+                          <label htmlFor="new-user-email" className="block text-sm mb-2">
                             使用者郵箱
                           </label>
                           <div className="relative">
@@ -647,10 +582,7 @@ export default function DepartmentPage() {
                           </div>
                         </div>
                         <div>
-                          <label
-                            htmlFor="new-user-job"
-                            className="block text-sm mb-2"
-                          >
+                          <label htmlFor="new-user-job" className="block text-sm mb-2">
                             職位
                           </label>
                           <div className="relative">
@@ -667,10 +599,7 @@ export default function DepartmentPage() {
                         </div>
 
                         <div>
-                          <label
-                            htmlFor="new-user-extension"
-                            className="block text-sm mb-2"
-                          >
+                          <label htmlFor="new-user-extension" className="block text-sm mb-2">
                             分機
                           </label>
                           <div className="relative">
@@ -778,15 +707,10 @@ export default function DepartmentPage() {
                     </span>
 
                     <div className="grow">
-                      <h3
-                        id="hs-modal-delete-department-label"
-                        className="mb-2 text-xl font-bold text-gray-800"
-                      >
+                      <h3 id="hs-modal-delete-department-label" className="mb-2 text-xl font-bold text-gray-800">
                         刪除部門
                       </h3>
-                      <p className="text-gray-500">
-                        若需要刪除部門，請確認部門成員爲空
-                      </p>
+                      <p className="text-gray-500">若需要刪除部門，請確認部門成員爲空</p>
                     </div>
                   </div>
                 </div>
@@ -829,27 +753,12 @@ export default function DepartmentPage() {
       {/* Department members */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-8">
         {departmentData?.members?.map(
-          (member: {
-            departmentId: string;
-            id: string;
-            username: string;
-            job: string;
-            extension: string;
-            email: string;
-            role: string;
-          }) => (
-            <div
-              key={member.username}
-              className="flex flex-col rounded-xl p-4 md:p-6 bg-white border-2 border-gray-200"
-            >
+          (member: { departmentId: string; id: string; username: string; job: string; extension: string; email: string; role: string }) => (
+            <div key={member.username} className="flex flex-col rounded-xl p-4 md:p-6 bg-white border-2 border-gray-200">
               <div className="flex items-center gap-x-4">
                 <div className="grow">
-                  <h3 className="font-medium text-2xl text-gray-800">
-                    {member.username}
-                  </h3>
-                  <p className="text-base uppercase text-gray-500">
-                    {member.job}
-                  </p>
+                  <h3 className="font-medium text-2xl text-gray-800">{member.username}</h3>
+                  <p className="text-base uppercase text-gray-500">{member.job}</p>
                 </div>
               </div>
 
@@ -859,16 +768,12 @@ export default function DepartmentPage() {
                 分機: {member.extension}
               </p>
 
-              <div
-                className={`mt-4 gap-x-2 flex flex-col sm:inline-flex sm:flex-row rounded-lg shadow-sm ${
-                  showEditUSer ? `` : `hidden`
-                }`}
-              >
+              <div className={`mt-4 gap-x-2 flex flex-col sm:inline-flex sm:flex-row rounded-lg shadow-sm ${showEditUSer ? `` : `hidden`}`}>
                 <button
                   type="button"
                   className={`${
                     showEditUSer ? `` : `hidden`
-                  } py-3 px-4 inline-flex items-center gap-x-2 -mt-px -ms-px text-sm font-medium focus:z-10 border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none `}
+                  } py-3 px-4 inline-flex items-center gap-x-2 -mt-px -ms-px text-sm font-medium focus:z-10 border border-gray-200 shadow-sm disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:bg-blue-700`}
                   aria-haspopup="dialog"
                   aria-expanded="false"
                   aria-controls={`hs-modal-update-member-${member.id}`}
@@ -887,10 +792,7 @@ export default function DepartmentPage() {
                     <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
                       <div className="p-4 sm:p-7">
                         <div className="text-center">
-                          <h3
-                            id={`hs-modal-update-member-${member.id}-label`}
-                            className="block text-2xl font-bold text-gray-800 "
-                          >
+                          <h3 id={`hs-modal-update-member-${member.id}-label`} className="block text-2xl font-bold text-gray-800 ">
                             修改信息
                           </h3>
                         </div>
@@ -899,10 +801,7 @@ export default function DepartmentPage() {
                           <div>
                             <div className="grid gap-y-4">
                               <div>
-                                <label
-                                  htmlFor={`update-user-role-${member.id}`}
-                                  className="block text-sm mb-2"
-                                >
+                                <label htmlFor={`update-user-role-${member.id}`} className="block text-sm mb-2">
                                   部門
                                 </label>
                                 <div className="relative">
@@ -918,25 +817,15 @@ export default function DepartmentPage() {
                                 }'
                                       id={`update-user-department-${member.id}`}
                                       name={`update-user-department-${member.id}`}
-                                      onChange={(e) =>
-                                        onUserDeaprtmentChange(e)
-                                      }
+                                      onChange={(e) => onUserDeaprtmentChange(e)}
                                       defaultValue={member.departmentId}
                                     >
                                       <option value="">選擇</option>
-                                      {allDepartmentsData?.map(
-                                        (department: {
-                                          id: string;
-                                          name: string;
-                                        }) => (
-                                          <option
-                                            key={department.id}
-                                            value={department.id}
-                                          >
-                                            {department.name}
-                                          </option>
-                                        )
-                                      )}
+                                      {allDepartmentsData?.map((department: { id: string; name: string }) => (
+                                        <option key={department.id} value={department.id}>
+                                          {department.name}
+                                        </option>
+                                      ))}
                                     </select>
 
                                     <div className="absolute top-1/2 end-2.5 -translate-y-1/2">
@@ -960,10 +849,7 @@ export default function DepartmentPage() {
                                 </div>
                               </div>
                               <div>
-                                <label
-                                  htmlFor={`update-username-${member.id}`}
-                                  className="block text-sm mb-2"
-                                >
+                                <label htmlFor={`update-username-${member.id}`} className="block text-sm mb-2">
                                   使用者名稱
                                 </label>
                                 <div className="relative">
@@ -980,10 +866,7 @@ export default function DepartmentPage() {
                                 </div>
                               </div>
                               <div>
-                                <label
-                                  htmlFor={`update-user-role-${member.id}`}
-                                  className="block text-sm mb-2"
-                                >
+                                <label htmlFor={`update-user-role-${member.id}`} className="block text-sm mb-2">
                                   角色
                                 </label>
                                 <div className="relative">
@@ -1029,10 +912,7 @@ export default function DepartmentPage() {
                               </div>
 
                               <div>
-                                <label
-                                  htmlFor={`change-user-email-${member.id}`}
-                                  className="block text-sm mb-2"
-                                >
+                                <label htmlFor={`change-user-email-${member.id}`} className="block text-sm mb-2">
                                   使用者郵箱
                                 </label>
                                 <div className="relative">
@@ -1049,10 +929,7 @@ export default function DepartmentPage() {
                                 </div>
                               </div>
                               <div>
-                                <label
-                                  htmlFor={`new-user-job-${member.id}`}
-                                  className="block text-sm mb-2"
-                                >
+                                <label htmlFor={`new-user-job-${member.id}`} className="block text-sm mb-2">
                                   職位
                                 </label>
                                 <div className="relative">
@@ -1082,10 +959,7 @@ export default function DepartmentPage() {
                               </div>
 
                               <div>
-                                <label
-                                  htmlFor={`change-user-extension-${member.id}`}
-                                  className="block text-sm mb-2"
-                                >
+                                <label htmlFor={`change-user-extension-${member.id}`} className="block text-sm mb-2">
                                   分機
                                 </label>
                                 <div className="relative">
@@ -1094,9 +968,7 @@ export default function DepartmentPage() {
                                     id={`change-user-extension-${member.id}`}
                                     name={`change-user-extension-${member.id}`}
                                     className="border py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none "
-                                    onChange={(e) =>
-                                      onNewUserExtensionChange(e)
-                                    }
+                                    onChange={(e) => onNewUserExtensionChange(e)}
                                     value={newUserExtension}
                                     placeholder={member.extension}
                                     required
@@ -1150,7 +1022,7 @@ export default function DepartmentPage() {
                   type="button"
                   className={`${
                     showEditUSer ? `` : `hidden`
-                  } py-3 px-4 inline-flex items-center gap-x-2 -mt-px -ms-px text-sm font-medium focus:z-10 border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none`}
+                  } py-3 px-4 inline-flex items-center gap-x-2 -mt-px -ms-px text-sm font-medium focus:z-10 border border-gray-200 shadow-sm focus:outline-none disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700  focus:bg-blue-700`}
                   aria-haspopup="dialog"
                   aria-expanded="false"
                   aria-controls={`hs-modal-change-password-${member.id}`}
@@ -1161,22 +1033,19 @@ export default function DepartmentPage() {
 
                 <div
                   id={`hs-modal-change-password-${member.id}`}
-                  className="hs-overlay hidden size-full fixed top-0 start-0 z-[80] overflow-x-hidden overflow-y-auto"
+                  className="hs-overlay hidden size-full fixed top-0 start-0 z-[80] overflow-x-hidden overflow-y-auto "
                   role="dialog"
                   tabIndex={-1}
                   aria-labelledby={`hs-modal-change-password-${member.id}-label`}
                 >
-                  <div className="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto">
+                  <div className="hs-overlay hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto">
                     <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
                       <div className="p-4 sm:p-7">
                         <div className="mt-5">
                           <form>
                             <div className="grid gap-y-4">
                               <div>
-                                <label
-                                  htmlFor={`admin-password-${member.id}`}
-                                  className="block text-sm mb-2"
-                                >
+                                <label htmlFor={`admin-password-${member.id}`} className="block text-sm mb-2">
                                   管理者密碼
                                 </label>
                                 <div className="relative">
@@ -1193,10 +1062,7 @@ export default function DepartmentPage() {
                               </div>
 
                               <div>
-                                <label
-                                  htmlFor={`password-${member.id}`}
-                                  className="block text-sm mb-2"
-                                >
+                                <label htmlFor={`password-${member.id}`} className="block text-sm mb-2">
                                   新密碼
                                 </label>
                                 <div className="relative">
@@ -1213,10 +1079,7 @@ export default function DepartmentPage() {
                               </div>
 
                               <div>
-                                <label
-                                  htmlFor={`confirm-password-${member.id}`}
-                                  className="block text-sm mb-2"
-                                >
+                                <label htmlFor={`confirm-password-${member.id}`} className="block text-sm mb-2">
                                   確認密碼
                                 </label>
                                 <div className="relative">
@@ -1232,27 +1095,32 @@ export default function DepartmentPage() {
                                 </div>
                               </div>
 
-                              {passwordError && (
-                                <p className=" text-xs text-red-600 mt-2">
-                                  {changePasswordErrorMess}
-                                </p>
-                              )}
+                              {passwordError && <p className=" text-xs text-red-600 mt-2">{changePasswordErrorMess}</p>}
 
-                              {passwordError === false && (
-                                <p className=" text-xs text-green-600 mt-2">
-                                  修改成功
-                                </p>
-                              )}
-
-                              <button
-                                type="button"
-                                className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-                                onClick={() => {
-                                  submitChangePassword(member.id);
-                                }}
-                              >
-                                Sign up
-                              </button>
+                              {passwordError === false && <p className=" text-xs text-green-600 mt-2">修改成功</p>}
+                              <div className="flex items-center gap-4 pt-4">
+                                <button
+                                  type="button"
+                                  className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-2xl border border-transparent bg-red-600 text-white hover:bg-red-800 focus:outline-none focus:bg-red-800 disabled:opacity-50 disabled:pointer-events-none"
+                                  data-hs-overlay={`#hs-modal-change-password-${member.id}`}
+                                  onClick={() => {
+                                    setAdminPassword("");
+                                    setNewPassword("");
+                                    setConfirmPassword("");
+                                  }}
+                                >
+                                  取消
+                                </button>
+                                <button
+                                  type="button"
+                                  className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
+                                  onClick={() => {
+                                    submitChangePassword(member.id);
+                                  }}
+                                >
+                                  確認修改
+                                </button>
+                              </div>
                             </div>
                           </form>
                         </div>
@@ -1264,7 +1132,7 @@ export default function DepartmentPage() {
                   type="button"
                   className={`${
                     showEditUSer ? `` : `hidden`
-                  } py-3 px-4 inline-flex items-s gap-x-2 -mt-px -ms-px text-sm font-medium focus:z-10 border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none`}
+                  } py-3 px-4 inline-flex items-s gap-x-2 -mt-px -ms-px text-sm font-medium focus:z-10 border border-gray-200 shadow-sm focus:outline-none disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700  focus:bg-blue-700`}
                   aria-haspopup="dialog"
                   aria-expanded="false"
                   aria-controls={`hs-modal-delete-user-${member.id}`}
@@ -1324,15 +1192,10 @@ export default function DepartmentPage() {
                           </span>
 
                           <div className="grow">
-                            <h3
-                              id={`hs-modal-delete-user-${member.id}-label`}
-                              className="mb-2 text-xl font-bold text-gray-800"
-                            >
+                            <h3 id={`hs-modal-delete-user-${member.id}-label`} className="mb-2 text-xl font-bold text-gray-800">
                               刪除成員
                             </h3>
-                            <p className="text-gray-500">
-                              請確認是否刪除成員{member.username}
-                            </p>
+                            <p className="text-gray-500">請確認是否刪除成員{member.username}</p>
                           </div>
                         </div>
                       </div>

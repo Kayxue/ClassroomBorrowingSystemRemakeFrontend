@@ -181,7 +181,7 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
 
   return (
     <div className="mt-3 mb-5">
-      <nav className="relative z-0 flex border rounded-xl overflow-hidden my-6" aria-label="Tabs" role="tablist" aria-orientation="horizontal">
+      <nav className="relative z-0 flex border rounded-xl overflow-hidden my-6">
         <button type="button" className={tabButtonClasses(1)} onClick={() => setActiveTab(1)} aria-selected={activeTab === 1}>
           今日借用紀錄
         </button>
@@ -198,7 +198,7 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
         </div>
       )}
       {activeTab === 1 && (
-        <div role="tabpanel">
+        <div>
           <div className="w-full mx-auto">
             <div className="overflow-hidden bg-white shadow sm:rounded-lg">
               <table className="min-w-full divide-y divide-gray-200">
@@ -276,7 +276,7 @@ export default function BorrowRecords({ type, param }: BorrowRecordsProps) {
       )}
 
       {activeTab === 2 && (
-        <div role="tabpanel">
+        <div>
           <div className="w-full mx-auto">
             <div className="overflow-hidden bg-white shadow sm:rounded-lg">
               <table className="min-w-full divide-y divide-gray-200">

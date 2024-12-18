@@ -88,6 +88,12 @@ export default function UpdatePassword() {
           >
             更改密碼
           </Link>
+          <Link
+                href="/UserService/UserBorrowHistory"
+                className="text-xl flex items-center px-3 py-2.5 font-semibold  hover:text-indigo-900 hover:border hover:rounded-full"
+              >
+                借用紀錄
+              </Link>
         </div>
       </aside>
       <main className="w-full min-h-screen py-1 md:w-2/3 lg:w-3/4">

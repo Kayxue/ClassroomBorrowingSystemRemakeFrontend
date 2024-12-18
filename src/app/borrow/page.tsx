@@ -210,7 +210,7 @@ export default function Borrow() {
                         onClick={() => checkClassroom(item.id)}
                       >
                         <div className="h-full flex flex-col justify-center items-center bg-blue-600 rounded-t-xl relative overflow-hidden">
-                          <Image src="/images/classroom.jpg" alt="Classroom" fill className="object-cover" />
+                          <Image src="/images/classroom.jpg" alt="Classroom" priority={true} className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" fill/>
                         </div>
                         <div className="p-4 md:p-6">
                           <h3 className="text-xl font-semibold text-gray-800">{item.name}</h3>
