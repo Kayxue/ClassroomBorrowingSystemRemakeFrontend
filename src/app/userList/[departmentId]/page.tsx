@@ -752,7 +752,7 @@ export default function DepartmentPage() {
       {/* -------------------------------------------- */}
       {/* Department members */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-8">
-        {departmentData?.members?.map(
+        {departmentData?.departmentWithUserCount?.members?.map(
           (member: { departmentId: string; id: string; username: string; job: string; extension: string; email: string; role: string }) => (
             <div key={member.username} className="flex flex-col rounded-xl p-4 md:p-6 bg-white border-2 border-gray-200">
               <div className="flex items-center gap-x-4">
