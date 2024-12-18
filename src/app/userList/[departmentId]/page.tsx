@@ -334,7 +334,7 @@ export default function DepartmentPage() {
     }).then((res) => {
       if (res.status === 200) {
         alert("刪除成功");
-        mutateDepartmentData();
+        window.location.reload();
         setSubmitLoading(false);
         return;
       } else {
