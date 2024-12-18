@@ -104,7 +104,7 @@ const JobCards = () => {
         <h2 className="text-2xl font-bold md:text-5xl md:leading-tight">
           部門
         </h2>
-        <p className="mt-1 text-gray-600 ">部門下各個成員</p>
+        <p className="mt-1 text-gray-600 ">此學校總共有 {departments.count} 個部門</p>
       </div>
       {/* //check data is empty or not first and then check whether it is admin */}
       {data?.role === "Admin" && (
