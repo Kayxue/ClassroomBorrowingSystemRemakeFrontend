@@ -10,8 +10,13 @@ const JobCards = () => {
     userCount: number;
   }
 
+  interface DepartmentData{
+    count:number,
+    departmentWithUserCount:Department[]
+  }
+
   const { data, isLoading } = checkPermission();
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departments, setDepartments] = useState<DepartmentData>({} as any);
   //const [serverError, setServerError] = useState(false);
   const [departmentName, setDepartmentName] = useState("");
   const [departmentLocation, setDepartmentLocation] = useState("");
@@ -270,7 +275,7 @@ const JobCards = () => {
         </div>
       )}
       <div className="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-        {departments?.map((department) => (
+        {departments?.departmentWithUserCount?.map((department) => (
           <Link
             key={department.id}
             className="group flex flex-col bg-white border shadow-sm rounded-xl hover:shadow-md focus:outline-none focus:shadow-md transition"
