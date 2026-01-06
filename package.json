@@ -3,26 +3,30 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "deno run -A --node-modules-dir npm:next@latest dev",
-    "build": "deno run -A --node-modules-dir npm:next@latest build",
-    "start": "deno run -A --node-modules-dir npm:next@latest start",
-    "lint": "next lint"
+    "dev": "bunx --bun next dev",
+    "build": "bunx --bun next build",
+    "start": "bunx --bun next start",
+    "lint": "bunx --bun eslint ."
   },
   "dependencies": {
-    "next": "14.2.15",
-    "preline": "^2.6.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "swr": "^2.2.5"
+    "next": "16.1.1",
+    "preline": "^2.7.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "swr": "^2.3.8"
   },
   "devDependencies": {
-    "@types/node": "^20.17.10",
-    "@types/react": "^18.3.16",
-    "@types/react-dom": "^18.3.5",
-    "eslint": "^8.57.1",
-    "eslint-config-next": "14.2.15",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.16",
-    "typescript": "^5.7.2"
+    "@types/node": "^20.19.27",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.1",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3"
   }
 }
